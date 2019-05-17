@@ -46,6 +46,9 @@ function wceu_form_shortcode() {
 add_action( 'wp', 'wceu_maybe_process_form' );
 function wceu_maybe_process_form() {
 	//@todo homework: learn about and implement nonce checking
+	if ( ! isset( $_GET['wceu_form'] ) ) {
+		return;
+	}
 	$wceu_form = $_GET['wceu_form']; //phpcs:ignore WordPress.Security.NonceVerification
 	if ( ! empty( $wceu_form ) && 'submit' === $wceu_form ) {
 		$email = $_GET['email']; //phpcs:ignore WordPress.Security.NonceVerification
