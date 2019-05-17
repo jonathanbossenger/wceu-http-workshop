@@ -14,12 +14,14 @@
 
 /**
  * Step 1: Let's build a simple form
+ * https://developer.wordpress.org/reference/functions/add_shortcode/
  */
 add_shortcode( 'wceu_form_shortcode', 'wceu_form_shortcode' );
 function wceu_form_shortcode() {
 	ob_start();
 	?>
 	<form>
+		<input type="hidden" name="wceu_form" value="submit">
 		<div>
 			<label for="email">Email address</label>
 			<input type="text" id="email" name="email" placeholder="Email address">
