@@ -112,3 +112,28 @@ function wceu_get_mailchimp_subscribers() {
 
 	return $response;
 }
+
+/**
+ * Step 4: Let's build a simple form
+ * https://developer.wordpress.org/reference/functions/add_shortcode/
+ */
+add_shortcode( 'wceu_form_shortcode', 'wceu_form_shortcode' );
+function wceu_form_shortcode() {
+	ob_start();
+	?>
+	<h1>Subscribe</h1>
+	<form method="post">
+		<input type="hidden" name="wceu_form" value="submit">
+		<div>
+			<label for="email">Email address</label>
+			<input type="text" id="email" name="email" placeholder="Email address">
+		</div>
+		<div>
+			<input type="submit" id="submit" name="submit" value="Submit">
+		</div>
+	</form>
+	<?php
+	$form = ob_get_clean();
+	return $form;
+}
+
