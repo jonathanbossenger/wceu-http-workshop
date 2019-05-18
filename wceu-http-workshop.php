@@ -15,6 +15,8 @@
 define( 'WCEU_MAILCHIMP_KEY', '183cf599ae5f86ac092e80746dbf8a12-us13' );
 define( 'WCEU_MAILCHIMP_LIST_ID', '79447f0a95' );
 
+require 'debugger.php';
+
 /**
  * Step 1: Let's build a simple form
  * https://developer.wordpress.org/reference/functions/add_shortcode/
@@ -68,6 +70,10 @@ function wceu_maybe_process_form() {
  * Step 3: Let's POST the form data to MailChimp
  * https://developer.wordpress.org/reference/functions/wp_remote_post/
  */
+/**
+ * Step 4: Let's add some logging
+ * https://gist.github.com/jonathanbossenger/54c7741260f7e2687f00edae60489c74
+ */
 function subscribe_email_to_mailchimp_list( $subscribe_data ) {
 
 	$api_key = WCEU_MAILCHIMP_KEY;
@@ -92,6 +98,9 @@ function subscribe_email_to_mailchimp_list( $subscribe_data ) {
 	}
 
 	$response_object = json_decode( wp_remote_retrieve_body( $response ) );
+
+	wceu_error_log( $response_object );
+
 	if ( empty( $response_object || ! isset( $response_object->status ) || 'subscribed' !== $response_object->status ) ) {
 		return false;
 	}
