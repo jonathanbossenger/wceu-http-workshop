@@ -54,6 +54,7 @@ function wceu_maybe_process_form() {
 		$email = $_GET['email']; //phpcs:ignore WordPress.Security.NonceVerification
 
 		$subscribe_data = array(
+			'status'        => 'subscribed',
 			'email_address' => $email,
 		);
 		$subscribed     = subscribe_email_to_mailchimp_list( $subscribe_data );
