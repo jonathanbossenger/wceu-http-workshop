@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:     Wceu Http Workshop
+ * Plugin Name:     WCEU Http Workshop
  * Plugin URI:      https://jonathanbossenger.com
- * Description:     Simple Shortcode based newsletter subscribe form that connets to the MailChimp API to subscribe a user
+ * Description:     Simple Shortcode based newsletter subscribe form that connects to the MailChimp API to subscribe a user
  * Author:          Jonathan Bossenger
  * Author URI:      https://jonathanbossenger.com
  * Text Domain:     wceu-http-workshop
@@ -61,6 +61,8 @@ function wceu_subscribers_shortcode() {
  */
 /**
  * Get MailChimp Subscriber Lists
+ *
+ * @return array
  */
 function wceu_get_mailchimp_subscribers() {
 
@@ -149,7 +151,56 @@ function wceu_maybe_process_form() {
 	}
 	$wceu_form = $_POST['wceu_form']; //phpcs:ignore WordPress.Security.NonceVerification
 	if ( ! empty( $wceu_form ) && 'submit' === $wceu_form ) {
-		$email = $_POST['email']; //phpcs:ignore WordPress.Security.NonceVerification
-		update_option( 'wceu_email', $email );
+		$email          = $_POST['email']; //phpcs:ignore WordPress.Security.NonceVerification
+		$subscribe_data = array(
+			'status'        => 'subscribed',
+			'email_address' => $email,
+		);
+		$subscribed     = subscribe_email_to_mailchimp_list( $subscribe_data );
+		if ( $subscribed ) {
+			update_option( 'wceu_email', $email );
+		}
 	}
+}
+
+/**
+ * Step 6: Let's POST the form data to MailChimp
+ * https://developer.wordpress.org/reference/functions/wp_remote_post/
+ *
+ * @param $subscribe_data
+ *
+ * @return bool
+ */
+function subscribe_email_to_mailchimp_list( $subscribe_data ) {
+
+	$api_key = WCEU_MAILCHIMP_KEY;
+	$list_id = WCEU_MAILCHIMP_LIST_ID;
+
+	$api_parts = explode( '-', $api_key );
+	$dc        = $api_parts[1];
+
+	$args = array(
+		'headers' => array(
+			'Authorization' => 'Basic ' . base64_encode( 'user:' . $api_key ), //phpcs:ignore
+		),
+		'body'    => json_encode( $subscribe_data ), //phpcs:ignore
+		'timeout' => '30',
+	);
+
+	$api_url = 'https://' . $dc . '.api.mailchimp.com/3.0/lists/' . $list_id . '/members/';
+
+	$api_response = wp_remote_post( $api_url, $args );
+
+	if ( is_wp_error( $api_response ) ) {
+		return false;
+	}
+
+	$response_object = json_decode( wp_remote_retrieve_body( $api_response ) );
+
+	wceu_error_log( $response_object );
+
+	if ( empty( $response_object || ! isset( $response_object->status ) || 'subscribed' !== $response_object->status ) ) {
+		return false;
+	}
+	return true;
 }
