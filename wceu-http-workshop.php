@@ -18,6 +18,77 @@ define( 'WCEU_MAILCHIMP_LIST_ID', '79447f0a95' );
 require 'debugger.php';
 
 /**
+ * Step 1: Let's prepare the subscriber list
+ * https://developer.wordpress.org/reference/functions/add_shortcode/
+ */
+add_shortcode( 'wceu_subscribers_shortcode', 'wceu_subscribers_shortcode' );
+function wceu_subscribers_shortcode() {
+	ob_start();
+	$subscribers = wceu_get_mailchimp_subscribers();
+	?>
+	<h1>Subscriber List</h1>
+	<table>
+		<th>
+			<td>Email</td>
+		</th>
+		<tr>
+			<td></td>
+		</tr>
+	</table>
+	<?php
+	$html = ob_get_clean();
+
+	return $html;
+}
+
+/**
+ * Step 2: Let's get the subscribers from MailChimp
+ * https://developer.wordpress.org/reference/functions/add_shortcode/
+ */
+/**
+ * Step 3: Let's add some debugging
+ * https://developer.wordpress.org/reference/functions/add_shortcode/
+ */
+/**
+ * Get MailChimp Subscriber Lists
+ *
+ * @param $api_key
+ *
+ * @return array|string|WP_Error
+ */
+function wceu_get_mailchimp_subscribers() {
+	$api_key = WCEU_MAILCHIMP_KEY;
+	$list_id = WCEU_MAILCHIMP_LIST_ID;
+
+	$api_parts = explode( '-', $api_key );
+	$dc        = $api_parts[1];
+
+	$args = array(
+		'headers' => array(
+			'Authorization' => 'Basic ' . base64_encode( 'user:' . $api_key ),
+		),
+		'timeout' => '30',
+	);
+
+	$api_url = 'https://' . $dc . '.api.mailchimp.com/3.0/lists/' . $list_id . '/members/';
+
+	$response = wp_remote_get( $api_url, $args );
+	if ( ! is_wp_error( $response ) ) {
+		$response_object = json_decode( wp_remote_retrieve_body( $response ) );
+		if ( ! empty( $response_object ) ) {
+			wceu_error_log('Response Object', $response_object);
+		} else {
+			$response = 'An error occurred retrieving the subscriber lists.';
+		}
+	} else {
+		$response = 'An error occurred connecting the MailChimp API.';
+	}
+
+	return $response;
+}
+
+
+/**
  * Step 1: Let's build a simple form
  * https://developer.wordpress.org/reference/functions/add_shortcode/
  */
