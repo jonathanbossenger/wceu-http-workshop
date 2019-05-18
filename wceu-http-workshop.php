@@ -137,3 +137,19 @@ function wceu_form_shortcode() {
 	return $form;
 }
 
+/**
+ * Step 5: Let's process the form data
+ * https://developer.wordpress.org/reference/hooks/wp/
+ */
+add_action( 'wp', 'wceu_maybe_process_form' );
+function wceu_maybe_process_form() {
+	//@todo homework: learn about and implement nonce checking
+	if ( ! isset( $_POST['wceu_form'] ) ) { //phpcs:ignore WordPress.Security
+		return;
+	}
+	$wceu_form = $_POST['wceu_form']; //phpcs:ignore WordPress.Security.NonceVerification
+	if ( ! empty( $wceu_form ) && 'submit' === $wceu_form ) {
+		$email = $_POST['email']; //phpcs:ignore WordPress.Security.NonceVerification
+		update_option( 'wceu_email', $email );
+	}
+}
