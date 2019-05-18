@@ -12,8 +12,8 @@
  * @package         Wceu_Http_Workshop
  */
 
-define( 'WCEU_MAILCHIMP_KEY', '183cf599ae5f86ac092e80746dbf8a12-us13' );
-define( 'WCEU_MAILCHIMP_LIST_ID', '79447f0a95' );
+define( 'WCEU_MAILCHIMP_KEY', '64370682219ee7dc16662450084bab61-us3' );
+define( 'WCEU_MAILCHIMP_LIST_ID', 'f7d0fcced3' );
 
 require 'debugger.php';
 
@@ -24,16 +24,18 @@ require 'debugger.php';
 add_shortcode( 'wceu_subscribers_shortcode', 'wceu_subscribers_shortcode' );
 function wceu_subscribers_shortcode() {
 	ob_start();
-	$subscribers = wceu_get_mailchimp_subscribers();
+	$subscriber_emails = wceu_get_mailchimp_subscribers();
 	?>
 	<h1>Subscriber List</h1>
 	<table>
-		<th>
-			<td>Email</td>
-		</th>
 		<tr>
-			<td></td>
+			<td>Email</td>
 		</tr>
+		<?php foreach ( $subscriber_emails as $subscriber_email ) { ?>
+			<tr>
+				<td><?php echo esc_html( $subscriber_email ); ?></td>
+			</tr>
+		<?php } ?>
 	</table>
 	<?php
 	$html = ob_get_clean();
@@ -76,7 +78,10 @@ function wceu_get_mailchimp_subscribers() {
 	if ( ! is_wp_error( $response ) ) {
 		$response_object = json_decode( wp_remote_retrieve_body( $response ) );
 		if ( ! empty( $response_object ) ) {
-			wceu_error_log('Response Object', $response_object);
+			$response = array();
+			foreach ( $response_object->members as $member ) {
+				$response[] = $member->email_address;
+			}
 		} else {
 			$response = 'An error occurred retrieving the subscriber lists.';
 		}
@@ -96,7 +101,7 @@ add_shortcode( 'wceu_form_shortcode', 'wceu_form_shortcode' );
 function wceu_form_shortcode() {
 	ob_start();
 	?>
-	<form>
+	<form method="post">
 		<input type="hidden" name="wceu_form" value="submit">
 		<div>
 			<label for="email">Email address</label>
@@ -119,12 +124,12 @@ function wceu_form_shortcode() {
 add_action( 'wp', 'wceu_maybe_process_form' );
 function wceu_maybe_process_form() {
 	//@todo homework: learn about and implement nonce checking
-	if ( ! isset( $_GET['wceu_form'] ) ) {
+	if ( ! isset( $_POST['wceu_form'] ) ) {
 		return;
 	}
-	$wceu_form = $_GET['wceu_form']; //phpcs:ignore WordPress.Security.NonceVerification
+	$wceu_form = $_POST['wceu_form']; //phpcs:ignore WordPress.Security.NonceVerification
 	if ( ! empty( $wceu_form ) && 'submit' === $wceu_form ) {
-		$email = $_GET['email']; //phpcs:ignore WordPress.Security.NonceVerification
+		$email = $_POST['email']; //phpcs:ignore WordPress.Security.NonceVerification
 
 		$subscribe_data = array(
 			'status'        => 'subscribed',
